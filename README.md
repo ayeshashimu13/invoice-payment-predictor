@@ -1,25 +1,56 @@
-# E-Commerce Funnel Analysis — October 2019
+# 📄 Invoice Payment Predictor
 
-## Overview
+Predicting **when vendor invoices will get paid** — and **whether they'll be late** — to help finance teams chase the risky ones early instead of guessing.
 
-Analysis of 500K e-commerce events to identify conversion bottlenecks, peak shopping hours, and top-performing product categories. Built using BigQuery (SQL) and Tableau.
+---
 
-## Key Findings
+## The problem
 
-- 117,406 view sessions resulted in only 8,256 purchases (4.32% view-to-cart rate)
-- Peak conversion hour: 6 AM UTC at 7.32%
-- Smartphones dominate with 9.93% conversion rate and $1.5M in revenue
-- Apparel categories underperform badly — costumes convert at nearly 0%
+Finance teams receive hundreds of invoices and don't know which ones will be paid late. So they chase everyone equally, wasting time. This project uses past invoices to predict payment behavior automatically.
 
-## Tools Used
+## What it does
 
-- Google BigQuery — SQL queries for funnel metrics
-- Tableau Public — Interactive dashboard with lollipop chart, treemap, and dual-axis combo chart
+Given an invoice's details (vendor, category, region, amount, payment terms), the system predicts:
 
-## Dashboard
+- **How many days** it will take to get paid (regression)
+- **Whether it will be late** — yes / no (classification)
 
-[View on Tableau Public](https://public.tableau.com/app/profile/ayesha.akter.shimo/viz/E-CommerceFunnelAnalysisOctober2019/)
+A simple **Streamlit web app** lets anyone enter an invoice and get both predictions instantly.
 
-## Data Source
+## How it was built
 
-[Kaggle — eCommerce behavior data (October 2019)](https://www.kaggle.com/datasets/mkechinov/ecommerce-behavior-data-from-multi-category-store)
+1. **Data cleaning** — handled real-world mess: duplicate rows, amounts stored as text (`"$10,161.58"`), mixed date formats, inconsistent vendor names, and missing values.
+2. **Feature engineering** — built the prediction target (`days_to_pay`) from the due and payment dates; turned text columns into numbers using one-hot encoding.
+3. **Modeling** — trained and compared several models:
+
+| Model | Avg error (days off) |
+|---|---|
+| Baseline (guess the average) | 11.73 |
+| **Linear Regression** | **10.69** ✅ |
+| Random Forest | 11.83 |
+| XGBoost | 10.91 |
+
+   The classification model catches **~75% of late invoices** (recall).
+4. **Storytelling** — charts and plain-language narrative so non-technical readers can follow.
+5. **Deployment** — saved the trained models and served them through a Streamlit app.
+
+## Results
+
+- Predicts payment timing within **~11 days** on average.
+- Flags late invoices with **75% recall**, helping finance act early.
+- The simplest model won — a useful reminder that more complex isn't always better.
+
+## ⚠️ Limitations (honest)
+
+The biggest reasons invoices are paid late — **disputes, customer cash-flow problems, phone calls** — are *not recorded in the data*. So no model can predict perfectly; there's a natural accuracy ceiling. This tool narrows the guess; it doesn't replace human judgment.
+
+## Tech stack
+
+Python · pandas · NumPy · scikit-learn · XGBoost · matplotlib · Streamlit
+
+## How to run
+
+​```bash
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+​```
